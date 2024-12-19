@@ -3,12 +3,11 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import MAPBOX_TOKEN from "../config"; // Ensure the path is correct
 
 // Import Lucide Icons
 import { MapPin, X } from "lucide-react";
 
-// Define TypeScript interface for markers
+// Define TypeScript interfaces
 interface MarkerType {
   id: number;
   coordinates: [number, number];
@@ -152,6 +151,14 @@ const MapComponent: React.FC = () => {
     }
   }, [selectedMarker]);
 
+  // Retrieve Mapbox token from environment variables
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+  if (!mapboxToken) {
+    console.error("Mapbox token is not defined. Please set VITE_MAPBOX_TOKEN in your .env file.");
+    return <div>Error: Mapbox token is not defined.</div>;
+  }
+
   return (
     <div className="h-screen w-full relative">
       <Map
@@ -159,7 +166,7 @@ const MapComponent: React.FC = () => {
         onMove={(evt) => setViewState(evt.viewState)}
         style={{ width: "100%", height: "100%" }} // Ensures the map fills the container
         mapStyle="mapbox://styles/mapbox/streets-v11" // You can change the map style as desired
-        mapboxAccessToken={MAPBOX_TOKEN}
+        mapboxAccessToken={mapboxToken}
       >
         {/* Absolute positioning for NavigationControl */}
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10">
