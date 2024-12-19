@@ -1,91 +1,89 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import Map, { Marker, Popup, NavigationControl } from "react-map-gl";
+import React, { useState, useRef, useMemo } from "react";
+import Map, { Marker, Popup, NavigationControl, MapRef } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { Sun, AlertTriangle, CheckCircle, Tag, X } from "lucide-react"; // Import the X icon for a custom close button
 
-// Import Lucide Icons
-import { MapPin as MapPinned } from "lucide-react";
+// Define a type for the solar panel data
+type SolarPanel = {
+  id: number;
+  longitude: number;
+  latitude: number;
+  title: string;
+  status: string;
+  description: string;
+  location: string;
+  severity: "normal" | "warning"; // Added severity for styling
+};
 
 const MapComponent: React.FC = () => {
   const [viewState, setViewState] = useState({
-    longitude: 100.5018, // Longitude for Bangkok
-    latitude: 13.7563, // Latitude for Bangkok
-    zoom: 12, // Zoom level suitable for city view
+    longitude: 100.541,
+    latitude: 13.73,
+    zoom: 14, // Zoom level suitable for markers
   });
 
-  const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
-  const popupRef = useRef<HTMLDivElement>(null);
+  const [selectedPanel, setSelectedPanel] = useState<SolarPanel | null>(null); // Typed state for the selected solar panel
 
-  const markers = useMemo(
+  const mapRef = useRef<MapRef | null>(null);
+
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+  // Solar panel markers near Lumphini Park
+  const solarPanelMarkers: SolarPanel[] = useMemo(
     () => [
       {
         id: 1,
-        coordinates: [100.4913, 13.75],
-        title: "Grand Palace",
-        description:
-          "A complex of buildings at the heart of Bangkok, Thailand. It has been the official residence of the Kings of Siam since 1782.",
-        image:
-          "https://static.wixstatic.com/media/2cc94a_f41bf7cbf0d34a2faaf7f0e27aabb3b3~mv2.jpg",
+        longitude: 100.5412,
+        latitude: 13.7304,
+        title: "Panel-01",
+        status: "high-temp",
+        description: "Overheating detected in sector 3 #A102",
+        location: "Sector 3, North Wing",
+        severity: "warning", // Red styling
       },
       {
         id: 2,
-        coordinates: [100.4887, 13.7437],
-        title: "Wat Arun",
-        description:
-          "Temple of Dawn, one of Bangkok’s most famous landmarks, known for its stunning porcelain-encrusted central prang (spire).",
-        image:
-          "https://static.wixstatic.com/media/2cc94a_07e55de318fe41538e17cb9de596cb45~mv2.jpg",
+        longitude: 100.5425,
+        latitude: 13.7308,
+        title: "Panel-02",
+        status: "operational",
+        description: "All systems operational #A101",
+        location: "Sector 1, East Wing",
+        severity: "normal", // Normal styling
       },
       {
         id: 3,
-        coordinates: [100.4931, 13.7467],
-        title: "Wat Pho",
-        description:
-          "Temple of the Reclining Buddha, renowned for its giant reclining Buddha statue and traditional Thai massage school.",
-        image:
-          "https://res.cloudinary.com/thetripguru/image/upload/f_auto,c_limit,w_1080,q_auto/02-tours/g0ievepnwzlp1zuoyyw5",
+        longitude: 100.5408,
+        latitude: 13.7299,
+        title: "Panel-03",
+        status: "operational",
+        description: "All systems operational #A102",
+        location: "Sector 2, West Wing",
+        severity: "normal",
       },
       {
         id: 4,
-        coordinates: [100.55, 13.8],
-        title: "Chatuchak Weekend Market",
-        description:
-          "One of the largest markets in the world, offering a vast array of goods from clothing and accessories to home decor and food.",
-        image:
-          "https://res.cloudinary.com/pillarshotels/image/upload/f_auto/web/cms/resources/attractions/chatuchak-w1800h1360.jpg",
+        longitude: 100.5405,
+        latitude: 13.7311,
+        title: "Panel-04",
+        status: "operational",
+        description: "All systems operational #A103",
+        location: "Sector 2, West Wing",
+        severity: "normal",
       },
       {
         id: 5,
-        coordinates: [100.5419, 13.7304],
-        title: "Lumphini Park",
-        description:
-          "A large public park in Bangkok, providing a green oasis with walking paths, lakes, and recreational activities.",
-        image:
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Aerial_view_of_Lumphini_Park.jpg/1200px-Aerial_view_of_Lumphini_Park.jpg",
-      },
-      {
-        id: 6,
-        coordinates: [100.529, 13.7467],
-        title: "Siam Paragon",
-        description:
-          "A massive shopping mall in Bangkok, featuring luxury brands, a multiplex cinema, and a variety of dining options.",
-        image: "https://www.siamparagon.co.th/public/images/aboutus/SPD.jpg",
+        longitude: 100.5419,
+        latitude: 13.7315,
+        title: "Panel-05",
+        status: "high-temp",
+        description: "Overheating detected in sector 1 #A104",
+        location: "Sector 1, South Wing",
+        severity: "warning",
       },
     ],
     []
   );
-
-  const selectedMarker = useMemo(
-    () => markers.find((marker) => marker.id === selectedMarkerId) || null,
-    [selectedMarkerId, markers]
-  );
-
-  useEffect(() => {
-    if (selectedMarker && popupRef.current) {
-      popupRef.current.focus();
-    }
-  }, [selectedMarker]);
-
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
   if (!mapboxToken) {
     console.error(
@@ -96,87 +94,96 @@ const MapComponent: React.FC = () => {
 
   return (
     <div className="h-screen w-full relative">
+      {/* Map */}
       <Map
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
-        style={{ width: "100%", height: "100%" }} // Ensures the map fills the container
+        style={{ width: "100%", height: "100%" }}
         mapStyle="mapbox://styles/mapbox/streets-v11"
         mapboxAccessToken={mapboxToken}
+        ref={mapRef}
       >
-        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10">
+        {/* Navigation Control */}
+        <div className="absolute top-4 left-4 z-10">
           <NavigationControl />
         </div>
 
-        {markers.map((marker) => (
+        {/* Solar Panel Markers */}
+        {solarPanelMarkers.map((marker) => (
           <Marker
             key={marker.id}
-            longitude={marker.coordinates[0]}
-            latitude={marker.coordinates[1]}
+            longitude={marker.longitude}
+            latitude={marker.latitude}
             anchor="bottom"
           >
-            <button
-              className="bg-transparent rounded-full p-2 shadow-none focus:outline-none hover:opacity-90 transition-opacity duration-200"
-              onClick={() => setSelectedMarkerId(marker.id)}
-              aria-label={`View details for ${marker.title}`}
+            <div
+              className="cursor-pointer"
+              onClick={() => setSelectedPanel(marker)}
             >
-              <MapPinned
-                className="w-8 h-8 sm:w-9 sm:h-9 text-blue-600 stroke-2"
-                aria-hidden="true"
-              />
-            </button>
+              {marker.severity === "warning" ? (
+                <AlertTriangle
+                  className="w-8 h-8 text-red-500"
+                  aria-hidden="true"
+                />
+              ) : (
+                <Sun className="w-8 h-8 text-yellow-500" aria-hidden="true" />
+              )}
+            </div>
           </Marker>
         ))}
 
-        {selectedMarker && (
+        {/* Popup for Selected Panel */}
+        {selectedPanel && (
           <Popup
-            longitude={selectedMarker.coordinates[0]}
-            latitude={selectedMarker.coordinates[1]}
-            onClose={() => setSelectedMarkerId(null)}
+            longitude={selectedPanel.longitude}
+            latitude={selectedPanel.latitude}
+            closeButton={false} // Remove the default close button
             closeOnClick={false}
-            closeButton={false} // Removes the default close button
             anchor="top"
-            className="max-w-sm p-4 bg-white rounded-lg shadow-lg flex flex-col relative"
-            focusAfterOpen={false}
+            className={`rounded-lg shadow-lg max-w-xs p-4 relative ${
+              selectedPanel.severity === "warning"
+                ? "border-l-4 border-red-500"
+                : "border-l-4 border-green-500"
+            }`}
+            style={{
+              backgroundColor: "white", // Ensure the popup has a solid white background
+              color: "black", // Ensure text is visible
+              border: "1px solid #ccc", // Add a border for clarity
+            }}
           >
-            <div
-              ref={popupRef}
-              tabIndex={-1}
-              className="flex flex-col"
-              aria-labelledby={`popup-title-${selectedMarker.id}`}
-              aria-describedby={`popup-description-${selectedMarker.id}`}
+            {/* Custom Close Button */}
+            <button
+              onClick={() => setSelectedPanel(null)}
+              className="absolute top-2 right-2 bg-white-200 hover:bg-gray-100 rounded-full p-1 shadow-md"
+              aria-label="Close popup"
             >
-              <button
-                onClick={() => setSelectedMarkerId(null)}
-                className="absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full p-2 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="Close popup"
-              >
-                ✖
-              </button>
+              <X className="w-4 h-4 text-black-600 hover:text-red-600" />
+            </button>
 
-              <img
-                src={selectedMarker.image}
-                alt={`${selectedMarker.title} Image`}
-                className="rounded w-full h-48 object-cover mb-4"
-                loading="lazy"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    "https://via.placeholder.com/300x200?text=No+Image+Available";
-                }}
-              />
-
-              <h3
-                id={`popup-title-${selectedMarker.id}`}
-                className="text-lg sm:text-xl font-semibold mb-2"
-              >
-                {selectedMarker.title}
-              </h3>
-
-              <p
-                id={`popup-description-${selectedMarker.id}`}
-                className="text-gray-700 text-base sm:text-lg"
-              >
-                {selectedMarker.description}
-              </p>
+            <div className="flex flex-col">
+              <div className="flex items-center mb-2">
+                {selectedPanel.severity === "warning" ? (
+                  <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
+                ) : (
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                )}
+                <h3 className="font-bold text-lg">{selectedPanel.title}</h3>
+              </div>
+              <p className="text-gray-700 mb-2">{selectedPanel.description}</p>
+              <div className="flex items-center text-sm text-gray-600">
+                <Sun
+                  className={`w-4 h-4 mr-1 ${
+                    selectedPanel.severity === "warning"
+                      ? "text-red-500"
+                      : "text-yellow-500"
+                  }`}
+                />
+                <span>{selectedPanel.location}</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600 mt-1">
+                <Tag className="w-4 h-4 text-gray-400 mr-1" />
+                <span>{selectedPanel.status}</span>
+              </div>
             </div>
           </Popup>
         )}
