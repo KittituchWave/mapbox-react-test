@@ -26,17 +26,17 @@ export const solarPanelMarkers: {
         "status": "high-temp",
         "description": "Overheating detected in sector 4 #A490",
         "location": "Sector 1, North Wing",
-        "severity": "normal"
+        "severity": "warning"
       },
       {
         "id": 3,
         "longitude": 100.536208,
         "latitude": 13.73726,
         "title": "Panel-03",
-        "status": "operational",
+        "status": "voltage-issue",
         "description": "Overheating detected in sector 2 #A433",
         "location": "Sector 4, North Wing",
-        "severity": "normal"
+        "severity": "warning"
       },
       {
         "id": 4,
@@ -56,7 +56,7 @@ export const solarPanelMarkers: {
         "status": "operational",
         "description": "All systems operational sector 2 #A589",
         "location": "Sector 2, North Wing",
-        "severity": "warning"
+        "severity": "normal"
       },
       {
         "id": 6,
@@ -64,7 +64,7 @@ export const solarPanelMarkers: {
         "latitude": 13.73793,
         "title": "Panel-06",
         "status": "operational",
-        "description": "Overheating detected in sector 1 #A690",
+        "description": "All systems operational sector 1 #A690",
         "location": "Sector 2, North Wing",
         "severity": "normal"
       },
@@ -93,10 +93,10 @@ export const solarPanelMarkers: {
         "longitude": 100.539941,
         "latitude": 13.720553,
         "title": "Panel-09",
-        "status": "high-temp",
+        "status": "operational",
         "description": "All systems operational sector 2 #A859",
         "location": "Sector 1, North Wing",
-        "severity": "warning"
+        "severity": "normal"
       },
       {
         "id": 10,
@@ -106,7 +106,7 @@ export const solarPanelMarkers: {
         "status": "operational",
         "description": "All systems operational sector 1 #A306",
         "location": "Sector 4, North Wing",
-        "severity": "warning"
+        "severity": "normal"
       }
     // Add more panels as needed
   ];
