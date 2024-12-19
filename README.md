@@ -1,1 +1,1 @@
-Showing Solar Panel's status on map
+Show Solar Panel's status on map
