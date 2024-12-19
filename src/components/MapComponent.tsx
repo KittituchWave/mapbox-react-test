@@ -79,6 +79,7 @@ const MapComponent: React.FC = () => {
           <option value="mapbox://styles/mapbox/streets-v11">Streets</option>
           <option value="mapbox://styles/mapbox/dark-v10">Dark Mode</option>
           <option value="mapbox://styles/mapbox/light-v10">Light Mode</option>
+          <option value="mapbox://styles/mapbox/satellite-v9">Satellite</option>
         </select>
       </div>
     </div>
