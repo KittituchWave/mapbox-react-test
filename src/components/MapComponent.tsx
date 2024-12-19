@@ -1,37 +1,9 @@
-// src/components/MapComponent.tsx
-
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import Map, { Marker, Popup, NavigationControl, Source, Layer } from "react-map-gl";
+import Map, { Marker, Popup, NavigationControl } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 // Import Lucide Icons
-import { MapPin, X } from "lucide-react";
-
-// Define TypeScript interfaces
-interface MarkerType {
-  id: number;
-  coordinates: [number, number];
-  title: string;
-  description: string;
-  image: string;
-}
-
-interface PolygonFeature {
-  type: "Feature";
-  geometry: {
-    type: "Polygon";
-    coordinates: number[][][];
-  };
-  properties: {
-    id: number;
-    title: string;
-  };
-}
-
-interface FeatureCollection {
-  type: "FeatureCollection";
-  features: PolygonFeature[];
-}
+import { MapPin as MapPinned } from "lucide-react";
 
 const MapComponent: React.FC = () => {
   const [viewState, setViewState] = useState({
@@ -43,8 +15,7 @@ const MapComponent: React.FC = () => {
   const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  // Define markers for popular tourist attractions in Bangkok with image URLs
-  const markers: MarkerType[] = useMemo(
+  const markers = useMemo(
     () => [
       {
         id: 1,
@@ -53,7 +24,7 @@ const MapComponent: React.FC = () => {
         description:
           "A complex of buildings at the heart of Bangkok, Thailand. It has been the official residence of the Kings of Siam since 1782.",
         image:
-          "https://static.wixstatic.com/media/2cc94a_f41bf7cbf0d34a2faaf7f0e27aabb3b3~mv2.jpg/v1/fill/w_640,h_480,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/2cc94a_f41bf7cbf0d34a2faaf7f0e27aabb3b3~mv2.jpg",
+          "https://static.wixstatic.com/media/2cc94a_f41bf7cbf0d34a2faaf7f0e27aabb3b3~mv2.jpg",
       },
       {
         id: 2,
@@ -62,7 +33,7 @@ const MapComponent: React.FC = () => {
         description:
           "Temple of Dawn, one of Bangkok’s most famous landmarks, known for its stunning porcelain-encrusted central prang (spire).",
         image:
-          "https://static.wixstatic.com/media/2cc94a_07e55de318fe41538e17cb9de596cb45~mv2.jpg/v1/fill/w_2500,h_1406,al_c/2cc94a_07e55de318fe41538e17cb9de596cb45~mv2.jpg",
+          "https://static.wixstatic.com/media/2cc94a_07e55de318fe41538e17cb9de596cb45~mv2.jpg",
       },
       {
         id: 3,
@@ -103,59 +74,23 @@ const MapComponent: React.FC = () => {
     []
   );
 
-  // Get the selected marker details
   const selectedMarker = useMemo(
     () => markers.find((marker) => marker.id === selectedMarkerId) || null,
     [selectedMarkerId, markers]
   );
 
-  // Define approximate polygon around each marker
-  const polygons: FeatureCollection = useMemo(() => {
-    const offset = 0.005; // Approximate offset in degrees
-
-    const features: PolygonFeature[] = markers.map((marker) => {
-      const [lng, lat] = marker.coordinates;
-      const polygonCoordinates = [
-        [
-          [lng - offset, lat - offset],
-          [lng - offset, lat + offset],
-          [lng + offset, lat + offset],
-          [lng + offset, lat - offset],
-          [lng - offset, lat - offset], // Close the polygon
-        ],
-      ];
-
-      return {
-        type: "Feature",
-        geometry: {
-          type: "Polygon",
-          coordinates: polygonCoordinates,
-        },
-        properties: {
-          id: marker.id,
-          title: marker.title,
-        },
-      };
-    });
-
-    return {
-      type: "FeatureCollection",
-      features,
-    };
-  }, [markers]);
-
-  // Handle focus when popup opens for accessibility
   useEffect(() => {
     if (selectedMarker && popupRef.current) {
       popupRef.current.focus();
     }
   }, [selectedMarker]);
 
-  // Retrieve Mapbox token from environment variables
   const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
   if (!mapboxToken) {
-    console.error("Mapbox token is not defined. Please set VITE_MAPBOX_TOKEN in your .env file.");
+    console.error(
+      "Mapbox token is not defined. Please set VITE_MAPBOX_TOKEN in your .env file."
+    );
     return <div>Error: Mapbox token is not defined.</div>;
   }
 
@@ -165,39 +100,13 @@ const MapComponent: React.FC = () => {
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
         style={{ width: "100%", height: "100%" }} // Ensures the map fills the container
-        mapStyle="mapbox://styles/mapbox/streets-v11" // You can change the map style as desired
+        mapStyle="mapbox://styles/mapbox/streets-v11"
         mapboxAccessToken={mapboxToken}
       >
-        {/* Absolute positioning for NavigationControl */}
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10">
           <NavigationControl />
         </div>
 
-        {/* Polygons */}
-        <Source id="polygons" type="geojson" data={polygons}>
-          {/* Fill Layer */}
-          <Layer
-            id="polygon-layer"
-            type="fill"
-            source="polygons" // Explicitly specify the source
-            paint={{
-              "fill-color": "#888888",
-              "fill-opacity": 0.3,
-            }}
-          />
-          {/* Line Layer */}
-          <Layer
-            id="polygon-border-layer"
-            type="line"
-            source="polygons" // Explicitly specify the source
-            paint={{
-              "line-color": "#444444",
-              "line-width": 2,
-            }}
-          />
-        </Source>
-
-        {/* Markers */}
         {markers.map((marker) => (
           <Marker
             key={marker.id}
@@ -206,27 +115,28 @@ const MapComponent: React.FC = () => {
             anchor="bottom"
           >
             <button
-              className="bg-blue-500 text-white rounded-full p-2 shadow-lg focus:outline-none hover:bg-blue-600 transition-colors duration-200
-                         sm:p-3 sm:hover:bg-blue-700"
+              className="bg-transparent rounded-full p-2 shadow-none focus:outline-none hover:opacity-90 transition-opacity duration-200"
               onClick={() => setSelectedMarkerId(marker.id)}
               aria-label={`View details for ${marker.title}`}
             >
-              <MapPin className="w-6 h-6 sm:w-7 sm:h-7" aria-hidden="true" />
+              <MapPinned
+                className="w-8 h-8 sm:w-9 sm:h-9 text-blue-600 stroke-2"
+                aria-hidden="true"
+              />
             </button>
           </Marker>
         ))}
 
-        {/* Popup */}
         {selectedMarker && (
           <Popup
             longitude={selectedMarker.coordinates[0]}
             latitude={selectedMarker.coordinates[1]}
             onClose={() => setSelectedMarkerId(null)}
             closeOnClick={false}
-            closeButton={false} // Disable the default close button
+            closeButton={false} // Removes the default close button
             anchor="top"
-            className="max-w-5xl sm:max-w-6xl md:max-w-7xl p-4 sm:p-6 bg-white rounded-lg shadow-lg flex flex-col relative"
-            focusAfterOpen={false} // Control focus manually
+            className="max-w-sm p-4 bg-white rounded-lg shadow-lg flex flex-col relative"
+            focusAfterOpen={false}
           >
             <div
               ref={popupRef}
@@ -235,16 +145,14 @@ const MapComponent: React.FC = () => {
               aria-labelledby={`popup-title-${selectedMarker.id}`}
               aria-describedby={`popup-description-${selectedMarker.id}`}
             >
-              {/* Close Button */}
               <button
                 onClick={() => setSelectedMarkerId(null)}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 bg-white rounded-full p-2 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full p-2 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-label="Close popup"
               >
-                <X className="w-6 h-6" aria-hidden="true" />
+                ✖
               </button>
 
-              {/* Location Image */}
               <img
                 src={selectedMarker.image}
                 alt={`${selectedMarker.title} Image`}
@@ -256,18 +164,16 @@ const MapComponent: React.FC = () => {
                 }}
               />
 
-              {/* Title */}
               <h3
                 id={`popup-title-${selectedMarker.id}`}
-                className="text-xl sm:text-2xl font-semibold mb-2"
+                className="text-lg sm:text-xl font-semibold mb-2"
               >
                 {selectedMarker.title}
               </h3>
 
-              {/* Description */}
               <p
                 id={`popup-description-${selectedMarker.id}`}
-                className="text-gray-700 text-base sm:text-lg max-h-40 overflow-y-auto"
+                className="text-gray-700 text-base sm:text-lg"
               >
                 {selectedMarker.description}
               </p>
