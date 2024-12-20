@@ -1,3 +1,4 @@
+// This file contains the data for the solar panel markers on the map.
 export const solarPanelMarkers: {
     id: number;
     longitude: number;
