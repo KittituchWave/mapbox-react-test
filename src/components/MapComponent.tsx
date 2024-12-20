@@ -117,7 +117,7 @@ const MapComponent: React.FC = () => {
           id="polygonToggle"
           onClick={() => setShowPolygon(!showPolygon)}
           className={`border border-gray-300 rounded p-2 ${
-            showPolygon ? "bg-gray-100 text-black" : "bg-green-500 text-white"
+            showPolygon ? "bg-gray-100 hover:bg-gray-200 text-black" : "bg-green-500 hover:bg-green-400 text-white"
           }`}
         >
           {showPolygon ? "Hide Polygon" : "Show Polygon"}
