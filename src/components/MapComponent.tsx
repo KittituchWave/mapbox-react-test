@@ -1,9 +1,10 @@
 import React, { useState, useRef } from "react";
-import Map, { NavigationControl, MapRef } from "react-map-gl";
+import Map, { NavigationControl, MapRef, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import MarkerComponent from "./MarkerComponent";
 import PopupComponent from "./PopupComponent";
 import { solarPanelMarkers } from "../data/solarPanelData";
+import { polygonData } from "../data/polygonData"; // Assume this is the polygon data in GeoJSON format
 
 const MapComponent: React.FC = () => {
   const [viewState, setViewState] = useState({
@@ -19,6 +20,8 @@ const MapComponent: React.FC = () => {
   const [selectedPanel, setSelectedPanel] = useState<
     (typeof solarPanelMarkers)[0] | null
   >(null);
+
+  const [showPolygon, setShowPolygon] = useState(true); // State to toggle polygon visibility
 
   const mapRef = useRef<MapRef | null>(null);
 
@@ -56,6 +59,28 @@ const MapComponent: React.FC = () => {
           />
         ))}
 
+        {/* Render Polygon Overlay */}
+        {showPolygon && (
+          <Source id="polygon-overlay" type="geojson" data={polygonData}>
+            <Layer
+              id="polygon-fill"
+              type="fill"
+              paint={{
+                "fill-color": ["get", "color"], // Use color from the GeoJSON properties
+                "fill-opacity": 0.5,
+              }}
+            />
+            <Layer
+              id="polygon-outline"
+              type="line"
+              paint={{
+                "line-color": "#000",
+                "line-width": 2,
+              }}
+            />
+          </Source>
+        )}
+
         {/* Render Popup */}
         {selectedPanel && (
           <PopupComponent
@@ -81,6 +106,22 @@ const MapComponent: React.FC = () => {
           <option value="mapbox://styles/mapbox/light-v10">Light Mode</option>
           <option value="mapbox://styles/mapbox/satellite-v9">Satellite</option>
         </select>
+      </div>
+
+      {/* Polygon Toggle */}
+      <div className="absolute top-3.5 right-52 bg-white p-2 rounded shadow-md">
+        <label htmlFor="polygonToggle" className="block font-bold mb-1">
+          Overlay Options
+        </label>
+        <button
+          id="polygonToggle"
+          onClick={() => setShowPolygon(!showPolygon)}
+          className={`border border-gray-300 rounded p-2 ${
+            showPolygon ? "bg-gray-100 text-black" : "bg-green-500 text-white"
+          }`}
+        >
+          {showPolygon ? "Hide Polygon" : "Show Polygon"}
+        </button>
       </div>
     </div>
   );
